@@ -5,12 +5,18 @@
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/kdtree/kdtree.h>
+#include <pcl/common/common.h>
 #include <pcl/sample_consensus/method_types.h>
 #include <pcl/sample_consensus/model_types.h>
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/visualization/cloud_viewer.h>
 #include <boost/lexical_cast.hpp>
+struct minmax_t
+{
+  float x, y, z;
+};
+
 int main (int argc, char** argv)
 {
   // Read in the cloud data
@@ -101,7 +107,7 @@ int main (int argc, char** argv)
     
     // Eigen::Vector4f min_pt;
     // Eigen::Vector4f max_pt;
-    
+
     for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
       cloud_cluster->points.push_back (cloud_filtered->points[*pit]); //*
     cloud_cluster->width = cloud_cluster->points.size ();
@@ -109,15 +115,45 @@ int main (int argc, char** argv)
     cloud_cluster->is_dense = true;
 
     std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
-    std::stringstream ss;
-    ss << "cloud_cluster_" << j << ".pcd";
-    writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false); //*
+    // Save point cloud to .pcd
+    // std::stringstream ss;
+    // ss << "cloud_cluster_" << j << ".pcd";
+    // writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false); //*
     j++;
     // if(j-1!=0)
     //   viewer.removePointCloud(boost::lexical_cast<std::string>(j-1));
+    minmax_t min;
+    minmax_t max;
+    min.x = min.y = min.z = 1000;
+    max.x = max.y = max.z = -1000;
+    for (int i = 0; i < cloud_cluster->width; i++){
+      //std::cout<< "x = " << cloud_cluster->points[1].x << std::endl;
+      if (cloud_cluster->points[i].x < min.x){
+        min.x = cloud_cluster->points[i].x;
+      }
+      if (cloud_cluster->points[i].y < min.y){
+        min.y = cloud_cluster->points[i].y;
+      }
+      if (cloud_cluster->points[i].z < min.z){
+        min.z = cloud_cluster->points[i].z;
+      }
+      if (cloud_cluster->points[i].x > max.x){
+        max.x = cloud_cluster->points[i].x;
+      }
+      if (cloud_cluster->points[i].y > max.y){
+        max.y = cloud_cluster->points[i].y;
+      }
+      if (cloud_cluster->points[i].z > max.z){
+        max.z = cloud_cluster->points[i].z;
+      }
+    }
+    std::cout << "min:" <<min.x << std::endl;
+    std::cout << "max:" <<max.x << std::endl;
+    std::cout << "min:" <<min.y << std::endl;
+    std::cout << "max:" <<max.y << std::endl;
     viewer.addPointCloud(cloud_cluster, boost::lexical_cast<std::string>(j));
-    // void pcl::getMinMax3D(cloud_cluster, min_pt, max_pt);
-    // viewer.addCube(min_pt->fields.x, max_pt.x, min_pt.y, max_pt.y, min_pt.z, max_pt.z, 1.0, 1.0, 0.0, boost::lexical_cast<std::string>(j));
+    // pcl::getMinMax3D(cloud_cluster, min_pt, max_pt);
+    viewer.addCube(min.x, max.x, min.y, max.y, min.z, max.z, 1.0, 0.0, 0.0, boost::lexical_cast<std::string>(j));
     viewer.spin();
     // cloud_cluster->drawTBoundingBox(viewer, j);
     std::cout << "We entered the obstacle extraction loop." << std::endl;
