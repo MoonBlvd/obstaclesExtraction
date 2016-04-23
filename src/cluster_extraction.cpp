@@ -42,7 +42,7 @@ int main (int argc, char** argv)
 
   int i=0, nr_points = (int) cloud_filtered->points.size ();
   
-  pcl::visualization::PCLVisualizer viz;
+  pcl::visualization::PCLVisualizer viewer;
 
   std::cout << "nr_points:d"<< nr_points << std::endl;
 
@@ -87,15 +87,21 @@ int main (int argc, char** argv)
   ec.extract (cluster_indices);
 
 
-  viz.addPointCloud(cloud, "Original");
-  viz.spin();
-  viz.removePointCloud("Original");
+  viewer.addPointCloud(cloud, "Original");
+  viewer.spin();
+  viewer.removePointCloud("Original");
   int j = 0;
   // std::cout << "The begin of cluster indices:" << cluster_indices.begin () << std::endl;
   // std::cout << "The end of cluster indices:" << cluster_indices.end () << std::endl;
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
   {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
+    // pcl::PointCloud<pcl::PointXYZ>::Ptr min_pt (new pcl::PointCloud<pcl::PointXYZ>);
+    // pcl::PointCloud<pcl::PointXYZ>::Ptr max_pt (new pcl::PointCloud<pcl::PointXYZ>);
+    
+    // Eigen::Vector4f min_pt;
+    // Eigen::Vector4f max_pt;
+    
     for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
       cloud_cluster->points.push_back (cloud_filtered->points[*pit]); //*
     cloud_cluster->width = cloud_cluster->points.size ();
@@ -108,9 +114,12 @@ int main (int argc, char** argv)
     writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false); //*
     j++;
     // if(j-1!=0)
-    //   viz.removePointCloud(boost::lexical_cast<std::string>(j-1));
-    viz.addPointCloud(cloud_cluster, boost::lexical_cast<std::string>(j));
-    viz.spin();
+    //   viewer.removePointCloud(boost::lexical_cast<std::string>(j-1));
+    viewer.addPointCloud(cloud_cluster, boost::lexical_cast<std::string>(j));
+    // void pcl::getMinMax3D(cloud_cluster, min_pt, max_pt);
+    // viewer.addCube(min_pt->fields.x, max_pt.x, min_pt.y, max_pt.y, min_pt.z, max_pt.z, 1.0, 1.0, 0.0, boost::lexical_cast<std::string>(j));
+    viewer.spin();
+    // cloud_cluster->drawTBoundingBox(viewer, j);
     std::cout << "We entered the obstacle extraction loop." << std::endl;
   }
   std::cout << "We skipped the obstacle extraction loop." << std::endl;
