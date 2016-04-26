@@ -23,7 +23,7 @@ int main (int argc, char** argv)
   pcl::PCDReader reader;
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>), cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
   //reader.read ("../data/table_scene_lms400.pcd", *cloud);
-  reader.read ("../data/Scan1000.pcd", *cloud);
+  reader.read ("../data/Scan1199.pcd", *cloud);
   std::cout << "PointCloud before filtering has: " << cloud->points.size () << " data points." << std::endl; //*
 
   // Create the filtering object: downsample the dataset using a leaf size of 1cm
@@ -85,7 +85,7 @@ int main (int argc, char** argv)
 
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-  ec.setClusterTolerance (0.5); // 2cm
+  ec.setClusterTolerance (0.5); // 50cm
   ec.setMinClusterSize (20);
   ec.setMaxClusterSize (25000);
   ec.setSearchMethod (tree);
@@ -122,6 +122,8 @@ int main (int argc, char** argv)
     j++;
     // if(j-1!=0)
     //   viewer.removePointCloud(boost::lexical_cast<std::string>(j-1));
+
+    // Draw bounding box;
     minmax_t min;
     minmax_t max;
     min.x = min.y = min.z = 1000;
@@ -147,18 +149,35 @@ int main (int argc, char** argv)
         max.z = cloud_cluster->points[i].z;
       }
     }
-    std::cout << "min:" <<min.x << std::endl;
-    std::cout << "max:" <<max.x << std::endl;
-    std::cout << "min:" <<min.y << std::endl;
-    std::cout << "max:" <<max.y << std::endl;
+    // Obstacle size clustering
+    // float xLen, yLen, zLen;
+    // xLen = max.x-min.x;
+    // yLen = max.y-min.y;
+    // zLen = max.z-min.z;
+    // if (xLen > ){
+
+    // }
+
+    // std::cout << "min:" <<min.x << std::endl;
+    // std::cout << "max:" <<max.x << std::endl;
+    // std::cout << "min:" <<min.y << std::endl;
+    // std::cout << "max:" <<max.y << std::endl;
     viewer.addPointCloud(cloud_cluster, boost::lexical_cast<std::string>(j));
     // pcl::getMinMax3D(cloud_cluster, min_pt, max_pt);
     viewer.addCube(min.x, max.x, min.y, max.y, min.z, max.z, 1.0, 0.0, 0.0, boost::lexical_cast<std::string>(j));
     viewer.spin();
     // cloud_cluster->drawTBoundingBox(viewer, j);
-    std::cout << "We entered the obstacle extraction loop." << std::endl;
+    if (j == 1){
+      std::cout << "We entered the obstacle extraction loop." << std::endl;
+    }
   }
-  std::cout << "We skipped the obstacle extraction loop." << std::endl;
+  if (j == 0){
+    std::cout << "We skipped the obstacle extraction loop." << std::endl;
+  }
+  else{
+    std::cout << "We finished the obstacle extraction loop." << std::endl;
+
+  }
 
   return (0);
 }
