@@ -7,6 +7,18 @@
 #IncludeRegexTransform: 
 
 /home/brianyao/Desktop/cluster_extraction/src/cluster_extraction.cpp
+stdlib.h
+-
+time.h
+-
+opencv2/core/core.hpp
+-
+opencv2/highgui/highgui.hpp
+-
+opencv2/imgproc/imgproc.hpp
+-
+iostream
+-
 pcl/ModelCoefficients.h
 -
 pcl/point_types.h

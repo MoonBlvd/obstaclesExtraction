@@ -127,6 +127,25 @@ cluster_extraction: /usr/lib/libvtkCommon.so.5.8.0
 cluster_extraction: /usr/lib/libvtkRendering.so.5.8.0
 cluster_extraction: /usr/lib/libvtkHybrid.so.5.8.0
 cluster_extraction: /usr/lib/libvtkCharts.so.5.8.0
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_videostab.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_video.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_ts.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_superres.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_stitching.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_photo.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_ocl.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_objdetect.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_nonfree.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_ml.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_legacy.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_highgui.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_gpu.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_flann.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_features2d.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_core.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_contrib.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_calib3d.so.2.4.8
 cluster_extraction: /usr/lib/libpcl_common.so
 cluster_extraction: /usr/lib/libpcl_octree.so
 cluster_extraction: /usr/lib/libpcl_io.so
@@ -158,6 +177,20 @@ cluster_extraction: /usr/lib/libvtkIO.so.5.8.0
 cluster_extraction: /usr/lib/libvtkFiltering.so.5.8.0
 cluster_extraction: /usr/lib/libvtkCommon.so.5.8.0
 cluster_extraction: /usr/lib/libvtksys.so.5.8.0
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_nonfree.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_ocl.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_gpu.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_photo.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_objdetect.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_legacy.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_video.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_ml.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_calib3d.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_features2d.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_highgui.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_flann.so.2.4.8
+cluster_extraction: /usr/lib/x86_64-linux-gnu/libopencv_core.so.2.4.8
 cluster_extraction: CMakeFiles/cluster_extraction.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --red --bold "Linking CXX executable cluster_extraction"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/cluster_extraction.dir/link.txt --verbose=$(VERBOSE)

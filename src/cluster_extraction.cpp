@@ -1,3 +1,10 @@
+#include <stdlib.h>
+#include <time.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <iostream>
+
 #include <pcl/ModelCoefficients.h>
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
@@ -12,13 +19,32 @@
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/visualization/cloud_viewer.h>
 #include <boost/lexical_cast.hpp>
+
+using namespace cv;
+
 struct minmax_t
 {
   float x, y, z;
 };
-
 int main (int argc, char** argv)
 {
+  // Read in the full image
+  
+  Mat img = imread("../data/image0702.ppm", 1); //read the image data in the file "MyPic.JPG" and store it in 'img'
+  Mat imgResized;
+  Mat imgRotated;
+  resize(img, imgResized, Size(), 0.4, 0.2, INTER_LINEAR);
+  
+  Point2f pc(imgResized.cols/2.0, imgResized.rows/2.0);
+  Mat M = getRotationMatrix2D(pc, -90, 1.0);
+  Size s = imgResized.size();
+  warpAffine(imgResized, imgRotated, M, Size(s.height,s.width));
+  
+  resize(imgRotated, imgResized, Size(), 1.5, 0.5, INTER_LINEAR);
+  namedWindow("fullImage", CV_WINDOW_AUTOSIZE); //create a window with the name "MyWindow"
+  imshow("fullImage", imgResized);
+  waitKey(0);
+
   // Read in the cloud data
   pcl::PCDReader reader;
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>), cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
@@ -52,7 +78,10 @@ int main (int argc, char** argv)
 
   std::cout << "nr_points:d"<< nr_points << std::endl;
 
-  while (cloud_filtered->points.size () > 0.3 * nr_points)
+  std::cout << "Size of the filtered points: "  << cloud_filtered->points.size() << std::endl;
+
+  time_t start = time(0);
+  while (cloud_filtered->points.size () > 0.2 * nr_points)
   {
     // Segment the largest planar component from the remaining cloud
     seg.setInputCloud (cloud_filtered);
@@ -71,14 +100,17 @@ int main (int argc, char** argv)
 
     // Get the points associated with the planar surface
     extract.filter (*cloud_plane);
-    std::cout << "PointCloud representing the planar component: " << cloud_plane->points.size () << " data points." << std::endl;
+    //std::cout << "PointCloud representing the planar component: " << cloud_plane->points.size () << " data points." << std::endl;
 
     // Remove the planar inliers, extract the rest
     extract.setNegative (true);
     extract.filter (*cloud_f);
     *cloud_filtered = *cloud_f;
   }
+  double timeDiff = difftime( time(0), start);
+  std::cout << "CPU Time of gound points classification: "  << timeDiff << std::endl;
 
+  std::cout << "Size of the above ground points: "  << cloud_filtered->points.size() << std::endl;
   // Creating the KdTree object for the search method of the extraction
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
   tree->setInputCloud (cloud_filtered);
@@ -96,6 +128,9 @@ int main (int argc, char** argv)
   viewer.addPointCloud(cloud, "Original");
   viewer.spin();
   viewer.removePointCloud("Original");
+  viewer.addPointCloud(cloud_filtered, "aboveGround");
+  viewer.spin();
+  viewer.removePointCloud("aboveGround");
   int j = 0;
   // std::cout << "The begin of cluster indices:" << cluster_indices.begin () << std::endl;
   // std::cout << "The end of cluster indices:" << cluster_indices.end () << std::endl;
