@@ -30,7 +30,7 @@ int main (int argc, char** argv)
 {
   // Read in the full image
   
-  Mat img = imread("../data/image0702.ppm", 1); //read the image data in the file "MyPic.JPG" and store it in 'img'
+  Mat img = imread("../data/image0771.ppm", 1); //read the image data in the file "MyPic.JPG" and store it in 'img'
   Mat imgResized;
   Mat imgRotated;
   resize(img, imgResized, Size(), 0.4, 0.2, INTER_LINEAR);
@@ -40,7 +40,7 @@ int main (int argc, char** argv)
   Size s = imgResized.size();
   warpAffine(imgResized, imgRotated, M, Size(s.height,s.width));
   
-  resize(imgRotated, imgResized, Size(), 1.5, 0.5, INTER_LINEAR);
+  resize(imgRotated, imgResized, Size(), 2.1, 0.5, INTER_LINEAR);
   namedWindow("fullImage", CV_WINDOW_AUTOSIZE); //create a window with the name "MyWindow"
   imshow("fullImage", imgResized);
   waitKey(0);
@@ -49,7 +49,7 @@ int main (int argc, char** argv)
   pcl::PCDReader reader;
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>), cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
   //reader.read ("../data/table_scene_lms400.pcd", *cloud);
-  reader.read ("../data/Scan1199.pcd", *cloud);
+  reader.read ("../data/Scan1000.pcd", *cloud);
   std::cout << "PointCloud before filtering has: " << cloud->points.size () << " data points." << std::endl; //*
 
   // Create the filtering object: downsample the dataset using a leaf size of 1cm
@@ -70,7 +70,7 @@ int main (int argc, char** argv)
   seg.setModelType (pcl::SACMODEL_PLANE);
   seg.setMethodType (pcl::SAC_RANSAC);
   seg.setMaxIterations (100);
-  seg.setDistanceThreshold (0.02);
+  seg.setDistanceThreshold (0.03);
 
   int i=0, nr_points = (int) cloud_filtered->points.size ();
   
