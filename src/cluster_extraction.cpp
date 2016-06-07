@@ -49,7 +49,7 @@ int main (int argc, char** argv)
   pcl::PCDReader reader;
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>), cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
   //reader.read ("../data/table_scene_lms400.pcd", *cloud);
-  reader.read ("../data/Scan1000.pcd", *cloud);
+  reader.read ("../data/Scan1000Cam4.pcd", *cloud);
   std::cout << "PointCloud before filtering has: " << cloud->points.size () << " data points." << std::endl; //*
 
   // Create the filtering object: downsample the dataset using a leaf size of 1cm
@@ -70,7 +70,7 @@ int main (int argc, char** argv)
   seg.setModelType (pcl::SACMODEL_PLANE);
   seg.setMethodType (pcl::SAC_RANSAC);
   seg.setMaxIterations (100);
-  seg.setDistanceThreshold (0.03);
+  seg.setDistanceThreshold (0.02);
 
   int i=0, nr_points = (int) cloud_filtered->points.size ();
   
@@ -124,6 +124,7 @@ int main (int argc, char** argv)
   ec.setInputCloud (cloud_filtered);
   ec.extract (cluster_indices);
 
+  pcl::PointCloud<pcl::PointXYZ>::Ptr all_Obs (new pcl::PointCloud<pcl::PointXYZ>);
 
   viewer.addPointCloud(cloud, "Original");
   viewer.spin();
@@ -137,11 +138,6 @@ int main (int argc, char** argv)
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
   {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
-    // pcl::PointCloud<pcl::PointXYZ>::Ptr min_pt (new pcl::PointCloud<pcl::PointXYZ>);
-    // pcl::PointCloud<pcl::PointXYZ>::Ptr max_pt (new pcl::PointCloud<pcl::PointXYZ>);
-    
-    // Eigen::Vector4f min_pt;
-    // Eigen::Vector4f max_pt;
 
     for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
       cloud_cluster->points.push_back (cloud_filtered->points[*pit]); //*
@@ -158,6 +154,8 @@ int main (int argc, char** argv)
     // if(j-1!=0)
     //   viewer.removePointCloud(boost::lexical_cast<std::string>(j-1));
 
+
+    *all_Obs += *cloud_cluster;
     // Draw bounding box;
     minmax_t min;
     minmax_t max;
@@ -184,19 +182,6 @@ int main (int argc, char** argv)
         max.z = cloud_cluster->points[i].z;
       }
     }
-    // Obstacle size clustering
-    // float xLen, yLen, zLen;
-    // xLen = max.x-min.x;
-    // yLen = max.y-min.y;
-    // zLen = max.z-min.z;
-    // if (xLen > ){
-
-    // }
-
-    // std::cout << "min:" <<min.x << std::endl;
-    // std::cout << "max:" <<max.x << std::endl;
-    // std::cout << "min:" <<min.y << std::endl;
-    // std::cout << "max:" <<max.y << std::endl;
     viewer.addPointCloud(cloud_cluster, boost::lexical_cast<std::string>(j));
     // pcl::getMinMax3D(cloud_cluster, min_pt, max_pt);
     viewer.addCube(min.x, max.x, min.y, max.y, min.z, max.z, 1.0, 0.0, 0.0, boost::lexical_cast<std::string>(j));
@@ -206,6 +191,11 @@ int main (int argc, char** argv)
       std::cout << "We entered the obstacle extraction loop." << std::endl;
     }
   }
+  // Save point cloud to .pcd
+    std::stringstream ss;
+    ss << "clusterCam4Size20.pcd";
+    writer.write<pcl::PointXYZ> (ss.str (), *all_Obs, false); //*
+
   if (j == 0){
     std::cout << "We skipped the obstacle extraction loop." << std::endl;
   }
