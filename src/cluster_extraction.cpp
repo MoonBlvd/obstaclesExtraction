@@ -5,6 +5,9 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
+#include <vector> 
+#include <fstream>
+#include <algorithm>
 
 #include <pcl/ModelCoefficients.h>
 #include <pcl/point_types.h>
@@ -27,6 +30,15 @@ struct minmax_t
 {
   float x, y, z;
 };
+struct obj_t
+{
+  std::vector<int> ID;
+  std::vector<double> Distances;
+  std::vector<double> width;
+  std::vector<double> length;
+  std::vector<double> height;
+};
+
 int main (int argc, char** argv)
 {
   // Read in the full image
@@ -49,7 +61,7 @@ int main (int argc, char** argv)
   // Read in the cloud data
   pcl::PCDReader reader;
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>), cloud_above (new pcl::PointCloud<pcl::PointXYZ>);
-  reader.read ("../data/Scan1000Cam4.pcd", *cloud);
+  reader.read ("../data/Scan1199.pcd", *cloud);
   std::cout << "PointCloud before filtering has: " << cloud->points.size () << " data points." << std::endl; //*
 
   // Create the filtering object: downsample the dataset using a leaf size of 1cm
@@ -70,7 +82,7 @@ int main (int argc, char** argv)
   seg.setModelType (pcl::SACMODEL_PLANE);
   seg.setMethodType (pcl::SAC_RANSAC);
   seg.setMaxIterations (100);// Times of RANSAC
-  seg.setDistanceThreshold (0.02); 
+  seg.setDistanceThreshold (0.01); 
 
   int i=0, nr_points = (int) cloud_filtered->points.size ();
   
@@ -129,10 +141,15 @@ int main (int argc, char** argv)
   viewer.addPointCloud(cloud_filtered, "aboveGround");
   viewer.spin();
   viewer.removePointCloud("aboveGround");
-  int j = 0;
-  double objDistance;
+  int idx = 0;
+  double distance;
   // std::cout << "The begin of cluster indices:" << cluster_indices.begin () << std::endl;
   // std::cout << "The end of cluster indices:" << cluster_indices.end () << std::endl;
+  //add the origin position firstly
+  obj_t obj;
+  ofstream file;
+  file.open("objsData.txt");
+  viewer.addCube(-1,1,-1,1,-1,1, 0.0, 1.0, 0.0, boost::lexical_cast<std::string>(idx));
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
   {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
@@ -148,7 +165,6 @@ int main (int argc, char** argv)
     // std::stringstream ss;
     // ss << "cloud_cluster_" << j << ".pcd";
     // writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false); //*
-    j++;
     // if(j-1!=0)
     //   viewer.removePointCloud(boost::lexical_cast<std::string>(j-1));
 
@@ -179,32 +195,53 @@ int main (int argc, char** argv)
         max.z = cloud_cluster->points[i].z;
       }
     }
-    if (max.x < -20 || min.x > 20 || max.y < -50 || min.y >50 || max.z < -3 || min.x >3)
+    if (max.x < -20 || min.x > 20 || max.y < -50 || min.y >50 || max.z < -5 || min.x > 5)
     {
-	continue;// Skip the faraway objects
+      std::cout << "the object is too far from the car!" << std::endl;
+	    continue;// Skip the faraway objects
     }
-    objDistance = sqrt(pow((max.x-min.x)/2, 2.0) + pow((max.y-min.y)/2, 2.0) + pow((max.z-min.z)/2, 2.0));
-    viewer.addPointCloud(cloud_cluster, boost::lexical_cast<std::string>(j));
+    if (max.z-min.z < 0.25)
+    {
+      std::cout << "the object belongs to ground!" << std::endl;
+      continue;
+    }
+    // push back the data of each objects.
+    idx++;
+    distance = sqrt(pow((max.x+min.x)/2, 2.0) + pow((max.y+min.y)/2, 2.0));
+    std::cout << "The distance is : " << distance << std::endl;
+    obj.Distances.push_back(distance);
+    obj.ID.push_back(idx);
+    obj.width.push_back(max.x-min.x);
+    obj.length.push_back(max.y-min.y);
+    obj.height.push_back(max.z-min.z);
+    file << idx << " " 
+                << (min.x+max.x)/2 << " "
+                << (min.y+max.y)/2 << " "
+                << max.x-min.x << " "
+                << max.y-min.y << " "
+                << max.z-min.z <<"\n";
+
+    viewer.addPointCloud(cloud_cluster, boost::lexical_cast<std::string>(idx));
     // pcl::getMinMax3D(cloud_cluster, min_pt, max_pt);
-    viewer.addCube(min.x, max.x, min.y, max.y, min.z, max.z, 1.0, 0.0, 0.0, boost::lexical_cast<std::string>(j));
+    viewer.addCube(min.x, max.x, min.y, max.y, min.z, max.z, 1.0, 0.0, 0.0, boost::lexical_cast<std::string>(idx));
     viewer.spin();
     // cloud_cluster->drawTBoundingBox(viewer, j);
-    if (j == 1){
+    if (idx == 1){
       std::cout << "We entered the obstacle extraction loop." << std::endl;
     }
   }
+  file.close();
   // Save point cloud to .pcd
     std::stringstream ss;
-    ss << "clusterCam4Size20.pcd";
+    ss << "clusterSCAN1199.pcd";
     writer.write<pcl::PointXYZ> (ss.str (), *all_Obs, false); //*
 
-  if (j == 0){
+  if (idx == 0){
     std::cout << "We skipped the obstacle extraction loop." << std::endl;
   }
   else{
     std::cout << "We finished the obstacle extraction loop." << std::endl;
 
   }
-
   return (0);
 }
