@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -47,8 +48,7 @@ int main (int argc, char** argv)
 
   // Read in the cloud data
   pcl::PCDReader reader;
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>), cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
-  //reader.read ("../data/table_scene_lms400.pcd", *cloud);
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>), cloud_above (new pcl::PointCloud<pcl::PointXYZ>);
   reader.read ("../data/Scan1000Cam4.pcd", *cloud);
   std::cout << "PointCloud before filtering has: " << cloud->points.size () << " data points." << std::endl; //*
 
@@ -64,13 +64,13 @@ int main (int argc, char** argv)
   pcl::SACSegmentation<pcl::PointXYZ> seg;
   pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
   pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane (new pcl::PointCloud<pcl::PointXYZ> ());
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ground (new pcl::PointCloud<pcl::PointXYZ> ());
   pcl::PCDWriter writer;
   seg.setOptimizeCoefficients (true);
   seg.setModelType (pcl::SACMODEL_PLANE);
   seg.setMethodType (pcl::SAC_RANSAC);
-  seg.setMaxIterations (100);
-  seg.setDistanceThreshold (0.02);
+  seg.setMaxIterations (100);// Times of RANSAC
+  seg.setDistanceThreshold (0.02); 
 
   int i=0, nr_points = (int) cloud_filtered->points.size ();
   
@@ -81,7 +81,7 @@ int main (int argc, char** argv)
   std::cout << "Size of the filtered points: "  << cloud_filtered->points.size() << std::endl;
 
   time_t start = time(0);
-  while (cloud_filtered->points.size () > 0.2 * nr_points)
+  while (cloud_filtered->points.size () > 0.2 * nr_points)//Ground points classificationi
   {
     // Segment the largest planar component from the remaining cloud
     seg.setInputCloud (cloud_filtered);
@@ -97,15 +97,12 @@ int main (int argc, char** argv)
     extract.setInputCloud (cloud_filtered);
     extract.setIndices (inliers);
     extract.setNegative (false);
-
-    // Get the points associated with the planar surface
-    extract.filter (*cloud_plane);
-    //std::cout << "PointCloud representing the planar component: " << cloud_plane->points.size () << " data points." << std::endl;
-
-    // Remove the planar inliers, extract the rest
+    // Get ground points
+    extract.filter (*cloud_ground);
+    // Remove the ground points, get the above ground points
     extract.setNegative (true);
-    extract.filter (*cloud_f);
-    *cloud_filtered = *cloud_f;
+    extract.filter (*cloud_above);// 
+    *cloud_filtered = *cloud_above;
   }
   double timeDiff = difftime( time(0), start);
   std::cout << "CPU Time of gound points classification: "  << timeDiff << std::endl;
@@ -133,6 +130,7 @@ int main (int argc, char** argv)
   viewer.spin();
   viewer.removePointCloud("aboveGround");
   int j = 0;
+  double objDistance;
   // std::cout << "The begin of cluster indices:" << cluster_indices.begin () << std::endl;
   // std::cout << "The end of cluster indices:" << cluster_indices.end () << std::endl;
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
@@ -153,7 +151,6 @@ int main (int argc, char** argv)
     j++;
     // if(j-1!=0)
     //   viewer.removePointCloud(boost::lexical_cast<std::string>(j-1));
-
 
     *all_Obs += *cloud_cluster;
     // Draw bounding box;
@@ -182,6 +179,11 @@ int main (int argc, char** argv)
         max.z = cloud_cluster->points[i].z;
       }
     }
+    if (max.x < -20 || min.x > 20 || max.y < -50 || min.y >50 || max.z < -3 || min.x >3)
+    {
+	continue;// Skip the faraway objects
+    }
+    objDistance = sqrt(pow((max.x-min.x)/2, 2.0) + pow((max.y-min.y)/2, 2.0) + pow((max.z-min.z)/2, 2.0));
     viewer.addPointCloud(cloud_cluster, boost::lexical_cast<std::string>(j));
     // pcl::getMinMax3D(cloud_cluster, min_pt, max_pt);
     viewer.addCube(min.x, max.x, min.y, max.y, min.z, max.z, 1.0, 0.0, 0.0, boost::lexical_cast<std::string>(j));
