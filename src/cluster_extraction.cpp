@@ -149,6 +149,7 @@ int main (int argc, char** argv)
   obj_t obj;
   ofstream file;
   file.open("objsData.txt");
+  //file << "ID " << "posX " << "posY " << "width " << "length " << "height\n";
   viewer.addCube(-1,1,-1,1,-1,1, 0.0, 1.0, 0.0, boost::lexical_cast<std::string>(idx));
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
   {
@@ -205,6 +206,30 @@ int main (int argc, char** argv)
       std::cout << "the object belongs to ground!" << std::endl;
       continue;
     }
+    // simple classification of objects
+    std::string objType;
+    if ((max.z-min.z) > 2.0)
+    {
+      if ((max.x-min.x) < 1.5 && (max.y-min.y) < 1.5)
+      {
+        objType = "pillar";
+      }
+      else
+      {
+        objType = "wall";
+      }
+    }
+    else
+    {
+      if ((max.x-min.x) < 2.5 && (max.y-min.y) < 2.5 && (max.x-min.x) > 1.2 && (max.y-min.y) > 1.2)
+      {
+        objType = "Vehicle";
+      }
+      else
+      {
+        objType = "Others";
+      }
+    }
     // push back the data of each objects.
     idx++;
     distance = sqrt(pow((max.x+min.x)/2, 2.0) + pow((max.y+min.y)/2, 2.0));
@@ -224,6 +249,9 @@ int main (int argc, char** argv)
     viewer.addPointCloud(cloud_cluster, boost::lexical_cast<std::string>(idx));
     // pcl::getMinMax3D(cloud_cluster, min_pt, max_pt);
     viewer.addCube(min.x, max.x, min.y, max.y, min.z, max.z, 1.0, 0.0, 0.0, boost::lexical_cast<std::string>(idx));
+
+    const std::string text = "obj " + boost::lexical_cast<std::string>(idx)+" ("+objType+")";
+    viewer.addText3D(text, cloud_cluster->points[1],0.8, 1.0, 0.0, 0.0);
     viewer.spin();
     // cloud_cluster->drawTBoundingBox(viewer, j);
     if (idx == 1){
